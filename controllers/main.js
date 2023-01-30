@@ -1,3 +1,4 @@
+// JWT
 // check username, password in post(login) request 
 // if exist create a new JWT and send back to front-end 
 // setup the authentication so that only the request with JWT can access the dashboard(resource)
@@ -9,6 +10,7 @@ const login = async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
     throw new CustomAPIError("Please provide username and password", 400);
+    // 400--> Bad request
   }
 
   //normally we send id of databse(actual) in payload while signing jwt but here we are not using database so we sent a dummy id as Date and a username too. never send password in payload(i repeat never)
@@ -23,13 +25,32 @@ const login = async (req, res) => {
 
   res.status(200).json({msg:'user created',token})
 };
+
+
 const dashboard = async (req, res) => {
-  const luckyNumber = Math.floor(Math.random() * 100);
-  res.status(200).json({
-      msg: `Hello, Sarad Upadhyaya`,
+  const authHeader = req.headers.authorization;
+  if(!authHeader || !authHeader.startsWith('Bearer ')){
+    throw new CustomAPIError('No token provided',401)
+    //401 --> authentication error
+  }
+  const token = authHeader.split(' ')[1]
+    //   [1] means 2nd value i.e token as 1st is string 'Bearer'
+
+    // now verify the validity of the token
+  try {
+    const decoded = jwt.verify(token,process.env.JWT_SECRET)
+    const luckyNumber = Math.floor(Math.random() * 100);
+     
+    res.status(200).json({
+      msg: `Hello, ${decoded.username}`,
       secret: `Here is your authorized data, your lucky number is ${luckyNumber}`,
     });
-};
+    
+  } catch (error) {
+    throw new CustomAPIError('Not authorized to access this route',401)
+  }
 
+  
+};
 
 module.exports = { login, dashboard }
