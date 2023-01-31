@@ -4,13 +4,12 @@
 // setup the authentication so that only the request with JWT can access the dashboard(resource)
 
 const jwt = require("jsonwebtoken");
-const CustomAPIError = require("../errors/custom-error");
+const {BadRequestError} = require("../errors/index");
 
 const login = async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
-    throw new CustomAPIError("Please provide username and password", 400);
-    // 400--> Bad request
+    throw new BadRequestError("Please provide username and password");
   }
 
   //normally we send id of databse(actual) in payload while signing jwt but here we are not using database so we sent a dummy id as Date and a username too. never send password in payload(i repeat never)
@@ -38,7 +37,6 @@ const dashboard = async (req, res) => {
     secret: `Here is your authorized data, your lucky number is ${luckyNumber}`,
   });
 };
-
 
 
 module.exports = { login, dashboard };
